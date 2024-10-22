@@ -64,24 +64,24 @@ Un gráfico de líneas que representa cómo varía la pérdida durante el entren
 Un gráfico de barras que muestra la cantidad de ejemplos de cada clase en el conjunto de datos (casos negativos y positivos). Este gráfico es importante para verificar si hay un desequilibrio en las clases, lo que podría afectar el rendimiento del modelo.
 
 ## About this dataset
-•	Age : Age of the patient
-•	Sex : Sex of the patient
-•	exang: exercise induced angina (1 = yes; 0 = no)
-•	ca: number of major vessels (0-3)
-•	cp : Chest Pain type chest pain type
-  o	Value 1: typical angina
-  o	Value 2: atypical angina
-  o	Value 3: non-anginal pain
-  o	Value 4: asymptomatic
-•	trtbps : resting blood pressure (in mm Hg)
-•	chol : cholestoral in mg/dl fetched via BMI sensor
-•	fbs : (fasting blood sugar > 120 mg/dl) (1 = true; 0 = false)
-•	rest_ecg : resting electrocardiographic results
-  o	Value 0: normal
-  o	Value 1: having ST-T wave abnormality (T wave inversions and/or ST elevation or depression of > 0.05 mV)
-  o	Value 2: showing probable or definite left ventricular hypertrophy by Estes' criteria
-•	thalach : maximum heart rate achieved
-•	target : 0= less chance of heart attack 1= more chance of heart attack
+- Age : Age of the patient
+-	Sex : Sex of the patient
+-	exang: exercise induced angina (1 = yes; 0 = no)
+-	ca: number of major vessels (0-3)
+-	cp : Chest Pain type chest pain type
+  --	Value 1: typical angina
+  --	Value 2: atypical angina
+  --	Value 3: non-anginal pain
+  --	Value 4: asymptomatic
+-	trtbps : resting blood pressure (in mm Hg)
+-	chol : cholestoral in mg/dl fetched via BMI sensor
+-	fbs : (fasting blood sugar > 120 mg/dl) (1 = true; 0 = false)
+-	rest_ecg : resting electrocardiographic results
+  --	Value 0: normal
+  --	Value 1: having ST-T wave abnormality (T wave inversions and/or ST elevation or depression of > 0.05 mV)
+  --	Value 2: showing probable or definite left ventricular hypertrophy by Estes' criteria
+-	thalach : maximum heart rate achieved
+-	target : 0= less chance of heart attack 1= more chance of heart attack
 
 
 
