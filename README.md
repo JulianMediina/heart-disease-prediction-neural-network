@@ -36,16 +36,16 @@ Para configurar el entorno y las dependencias necesarias, puedes usar `pip`. Eje
 bash
 pip install -r requirements.txt
 
-##Uso
+## Uso
 -Clona el repositorio en tu máquina local.
 -Asegúrate de que las dependencias están instaladas.
 -Ejecuta el archivo principal del proyecto:
 python heart_disease_prediction_nn.py
 
-##resultados
+## resultados
 Los resultados indican que el modelo tiene un buen rendimiento general, con alta precisión, recall y F1 Score, lo que sugiere que es capaz de clasificar correctamente tanto los casos positivos como negativos en el conjunto de datos.
 
-##gráficos
+## gráficos
 
 Este código genera los siguientes gráficos:
 
