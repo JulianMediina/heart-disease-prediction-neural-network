@@ -46,6 +46,7 @@ python heart_disease_prediction_nn.py
 Los resultados indican que el modelo tiene un buen rendimiento general, con alta precisión, recall y F1 Score, lo que sugiere que es capaz de clasificar correctamente tanto los casos positivos como negativos en el conjunto de datos.
 
 ##gráficos
+
 Este código genera los siguientes gráficos:
 
 1. Matriz de Confusión:
