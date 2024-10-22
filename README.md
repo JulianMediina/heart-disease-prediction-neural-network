@@ -42,10 +42,10 @@ pip install -r requirements.txt
 -Ejecuta el archivo principal del proyecto:
 python heart_disease_prediction_nn.py
 
-## resultados
+## Resultados
 Los resultados indican que el modelo tiene un buen rendimiento general, con alta precisión, recall y F1 Score, lo que sugiere que es capaz de clasificar correctamente tanto los casos positivos como negativos en el conjunto de datos.
 
-## gráficos
+## Gráficos
 
 Este código genera los siguientes gráficos:
 
