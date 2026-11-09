@@ -1,0 +1,262 @@
+<section class="mx-auto max-w-6xl px-4 pt-8 sm:px-6 sm:pt-12">
+  <div class="stagger-in max-w-2xl">
+    <p class="text-sm font-semibold uppercase tracking-widest text-link">Modelo y datos</p>
+    <h1 class="mt-1 text-3xl font-extrabold tracking-tight text-fg sm:text-4xl">
+      Cómo funciona por dentro
+    </h1>
+    <p class="mt-3 text-muted">
+      Arquitectura de la red, diccionario de variables y metodología de entrenamiento y evaluación.
+    </p>
+  </div>
+
+  <!-- Arquitectura -->
+  <section class="card stagger-in mt-8" style="--i: 1" aria-labelledby="arch-title">
+    <h2 id="arch-title" class="section-title">Arquitectura: perceptrón multicapa (MLP)</h2>
+    <p class="mt-1 text-sm text-muted">
+      Red totalmente conectada implementada en PyTorch. Los nodos dibujados son una muestra: las
+      capas reales tienen 27, 64, 32 y 1 neuronas.
+    </p>
+    <div class="mt-4 overflow-x-auto">
+      <svg
+        [attr.viewBox]="'0 0 ' + diagram().w + ' ' + diagram().h"
+        class="mx-auto block w-full min-w-[480px] max-w-3xl"
+        role="img"
+        aria-label="Diagrama de la red: entrada de 27 columnas, dos capas ocultas de 64 y 32 neuronas y una salida"
+      >
+        @for (e of diagram().edges; track $index) {
+          <line
+            [attr.x1]="e.x1"
+            [attr.y1]="e.y1"
+            [attr.x2]="e.x2"
+            [attr.y2]="e.y2"
+            stroke="var(--app-border)"
+            stroke-width="1"
+          />
+        }
+        @for (e of diagram().edges; track $index) {
+          @if ($index % 7 === 0) {
+            <line
+              [attr.x1]="e.x1"
+              [attr.y1]="e.y1"
+              [attr.x2]="e.x2"
+              [attr.y2]="e.y2"
+              stroke="var(--color-flare-400)"
+              stroke-width="1.4"
+              pathLength="1"
+              stroke-dasharray="0.12 0.88"
+              class="animate-ecg"
+              [style.animation-delay.ms]="e.col * 400"
+            />
+          }
+        }
+        @for (c of diagram().cols; track c.name; let i = $index) {
+          @for (n of c.nodes; track $index) {
+            <circle
+              [attr.cx]="n.x"
+              [attr.cy]="n.y"
+              r="9"
+              [attr.fill]="i === 3 ? 'var(--app-primary)' : 'var(--app-surface)'"
+              [attr.stroke]="i === 0 ? 'var(--app-series-2)' : 'var(--app-series-1)'"
+              stroke-width="2.5"
+            />
+          }
+        }
+      </svg>
+    </div>
+    <ol class="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      @for (l of layers; track l.name; let i = $index) {
+        <li class="stagger-in rounded-xl bg-surface-2 p-3" [style.--i]="i + 2">
+          <p class="text-sm font-bold text-fg">
+            {{ l.name }} <span class="font-normal text-muted">· {{ l.size }}</span>
+          </p>
+          <p class="mt-1 text-xs text-muted">{{ l.detail }}</p>
+        </li>
+      }
+    </ol>
+  </section>
+
+  <!-- Nota sobre la etiqueta -->
+  <section
+    class="stagger-in mt-6 rounded-2xl border border-border bg-surface-2 p-5 text-fg"
+    style="--i: 2"
+    aria-labelledby="label-title"
+  >
+    <h2 id="label-title" class="font-bold">Sobre la etiqueta objetivo</h2>
+    <p class="mt-2 text-sm">{{ labelNote }}</p>
+    <p class="mt-2 text-sm">
+      La salida del modelo es la probabilidad de enfermedad cardíaca (clase 1). Es un proyecto
+      educativo: no sustituye un diagnóstico médico.
+    </p>
+    @if (serverNote(); as note) {
+      <p class="mt-2 text-sm">Nota del modelo: {{ note }}</p>
+    }
+  </section>
+
+  @switch (data.state().status) {
+    @case ('loading') {
+      <div class="mt-6 space-y-4" aria-busy="true" aria-label="Cargando diccionario de datos">
+        <app-skeleton shape="h-28 w-full rounded-2xl" />
+        <app-skeleton shape="h-96 w-full rounded-2xl" />
+      </div>
+    }
+    @case ('error') {
+      <div class="mt-6">
+        <app-error-banner
+          title="No pudimos cargar el diccionario de datos"
+          [message]="errorMessage()"
+          (retry)="data.reload()"
+        />
+      </div>
+    }
+  }
+
+  @if (ready(); as d) {
+    <!-- Resumen del dataset -->
+    <section
+      class="mt-6 grid gap-4 min-[420px]:grid-cols-2 lg:grid-cols-4"
+      aria-label="Resumen del dataset"
+    >
+      <div class="card stagger-in" style="--i: 3">
+        <p class="text-xs text-muted">Pacientes (dataset original)</p>
+        <p class="mt-1 text-3xl font-extrabold text-fg tabular-nums">{{ d.summary.n_samples }}</p>
+      </div>
+      <div class="card stagger-in" style="--i: 4">
+        <p class="text-xs text-muted">Filas duplicadas</p>
+        <p class="mt-1 text-3xl font-extrabold text-fg tabular-nums">
+          {{ d.summary.n_duplicates }}
+        </p>
+        <p class="text-xs text-muted">se eliminan antes de entrenar</p>
+      </div>
+      <div class="card stagger-in" style="--i: 5">
+        <p class="text-xs text-muted">Clases · dataset original</p>
+        <p class="mt-1 text-lg font-bold text-fg tabular-nums">
+          0: {{ count(d.summary.class_distribution, '0') }} · 1:
+          {{ count(d.summary.class_distribution, '1') }}
+        </p>
+      </div>
+      <div class="card stagger-in" style="--i: 6">
+        <p class="text-xs text-muted">Clases · tras eliminar duplicados</p>
+        @if (d.metrics; as m) {
+          <p class="mt-1 text-lg font-bold text-fg tabular-nums">
+            0: {{ count(m.class_distribution, '0') }} · 1: {{ count(m.class_distribution, '1') }}
+          </p>
+          <p class="text-xs text-muted">
+            train {{ m.n_samples.train }} · val {{ m.n_samples.val }} · test {{ m.n_samples.test }}
+          </p>
+        } @else {
+          <p class="mt-1 text-sm text-muted">No disponible</p>
+        }
+      </div>
+    </section>
+
+    <!-- Diccionario -->
+    <section class="card stagger-in mt-6" style="--i: 7" aria-labelledby="dict-title">
+      <h2 id="dict-title" class="section-title">Diccionario de variables</h2>
+      <p class="mt-1 text-sm text-muted">
+        Estadísticas calculadas sobre el CSV original ({{ d.summary.n_samples }} filas).
+      </p>
+      <div class="-mx-5 mt-4 overflow-x-auto sm:-mx-6">
+        <table class="w-full min-w-[640px] text-left text-sm">
+          <thead class="border-b border-border text-xs uppercase tracking-wide text-muted">
+            <tr>
+              <th scope="col" class="px-5 py-2 font-semibold sm:px-6">Variable</th>
+              <th scope="col" class="px-3 py-2 font-semibold">Descripción</th>
+              <th scope="col" class="px-3 py-2 font-semibold">Tipo / valores</th>
+              <th scope="col" class="px-3 py-2 text-right font-semibold">Media ± desv.</th>
+              <th scope="col" class="px-5 py-2 text-right font-semibold sm:px-6">Rango</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (r of rows(); track r.spec.name) {
+              <tr
+                class="border-b border-border/60 align-top transition-colors last:border-0 hover:bg-surface-2/60"
+              >
+                <th scope="row" class="px-5 py-3 font-semibold text-fg sm:px-6">
+                  {{ r.spec.label_es }}
+                  <code class="mt-0.5 block text-xs font-normal text-link">{{ r.spec.name }}</code>
+                </th>
+                <td class="px-3 py-3 text-muted">{{ r.spec.description_es }}</td>
+                <td class="px-3 py-3 text-muted">
+                  @if (r.spec.type === 'categorical') {
+                    <ul class="space-y-0.5 text-xs">
+                      @for (o of r.spec.options; track o.value) {
+                        <li>
+                          <span class="font-semibold text-fg tabular-nums">{{ o.value }}</span> =
+                          {{ o.label_es }}
+                        </li>
+                      }
+                    </ul>
+                  } @else {
+                    <span class="text-xs">Numérica (paso {{ r.spec.step | number }})</span>
+                  }
+                </td>
+                <td class="whitespace-nowrap px-3 py-3 text-right tabular-nums text-fg">
+                  @if (r.stats; as s) {
+                    {{ s.mean | number: '1.1-2' }} ± {{ s.std | number: '1.1-2' }}
+                  } @else {
+                    —
+                  }
+                </td>
+                <td class="whitespace-nowrap px-5 py-3 text-right tabular-nums text-muted sm:px-6">
+                  @if (r.stats; as s) {
+                    {{ s.min | number }} – {{ s.max | number }}
+                  } @else {
+                    {{ r.spec.min | number }} – {{ r.spec.max | number }}
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+  }
+
+  <!-- Metodología -->
+  <section class="card stagger-in mt-6" style="--i: 8" aria-labelledby="method-title">
+    <h2 id="method-title" class="section-title">Metodología</h2>
+    <ol class="mt-4 space-y-4">
+      @for (
+        s of [
+          {
+            t: 'Limpieza',
+            d: 'Se elimina la fila duplicada del CSV y se valida que cada variable esté en su rango o categoría.',
+          },
+          {
+            t: 'División estratificada',
+            d: 'Entrenamiento / validación / test (≈70/15/15 %) manteniendo la proporción de clases; semilla fija (42).',
+          },
+          {
+            t: 'Preprocesamiento',
+            d: 'Estandarización de variables continuas y one-hot de las nominales multinivel, ajustados sólo con entrenamiento para evitar fugas de información.',
+          },
+          {
+            t: 'Entrenamiento',
+            d: 'Adam (lr 0,001, weight decay 0,0001), lotes de 32, entropía cruzada binaria sobre el logit y parada temprana (paciencia 30) con la pérdida de validación.',
+          },
+          {
+            t: 'Umbral de decisión',
+            d: 'Se elige con el índice de Youden sobre predicciones fuera de pliegue en validación cruzada, no con el conjunto de test.',
+          },
+          {
+            t: 'Evaluación',
+            d: 'Validación cruzada estratificada de 5 particiones y evaluación final en test, comparando con una regresión logística como referencia.',
+          },
+        ];
+        track s.t;
+        let i = $index
+      ) {
+        <li class="flex gap-4">
+          <span
+            class="grid size-8 shrink-0 place-items-center rounded-full bg-flare-100 text-sm font-bold text-flare-800 dark:bg-flare-900 dark:text-flare-100"
+            >{{ i + 1 }}</span
+          >
+          <div>
+            <p class="font-semibold text-fg">{{ s.t }}</p>
+            <p class="text-sm text-muted">{{ s.d }}</p>
+          </div>
+        </li>
+      }
+    </ol>
+  </section>
+</section>

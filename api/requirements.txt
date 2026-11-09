@@ -1,0 +1,12 @@
+# Dependencias de la API. El paquete del modelo (heart_nn) se instala aparte
+# desde la raíz del repositorio con `pip install -e .` (incluye torch, pandas, scikit-learn).
+# Para CPU: pip install torch --index-url https://download.pytorch.org/whl/cpu
+fastapi>=0.115,<1
+uvicorn[standard]>=0.30,<1
+pydantic>=2.7,<3
+pydantic-settings>=2.3,<3
+pandas>=2.2
+
+# Tests
+pytest>=8
+httpx>=0.27,<1

@@ -1,0 +1,360 @@
+@import 'tailwindcss';
+
+/*
+ * Modo oscuro por clase (`<html class="dark">`). El valor inicial lo decide el
+ * script de index.html a partir de localStorage o de prefers-color-scheme.
+ */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/*
+ * Paleta del proyecto: seaborn "flare" (la que usaba la matriz de confusión del
+ * script original). Los tonos 50/100/900/950 se extienden para fondos y texto.
+ * "calma" es el acento frío (familia teal de HeartGuard, saturado para que pase
+ * las comprobaciones de daltonismo frente a flare-500).
+ */
+@theme {
+  --color-flare-50: #fdf4ec;
+  --color-flare-100: #f8dfc9;
+  --color-flare-200: #edb081;
+  --color-flare-300: #e98d6b;
+  --color-flare-400: #e3685c;
+  --color-flare-500: #d14a61;
+  --color-flare-600: #b13c6c;
+  --color-flare-700: #8f3371;
+  --color-flare-800: #6c2b6d;
+  --color-flare-900: #3f1a44;
+  --color-flare-950: #241027;
+
+  --color-calma-50: #eef7ff;
+  --color-calma-100: #d9eef6;
+  --color-calma-200: #cde8e5;
+  --color-calma-300: #8fd0ea;
+  --color-calma-400: #2799c4;
+  --color-calma-500: #1d84ae;
+  --color-calma-600: #4d869c;
+  --color-calma-800: #0d4a63;
+
+  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+  --animate-heartbeat: heartbeat 1.4s ease-in-out infinite;
+  --animate-ecg: ecg-draw 3.2s linear infinite;
+  --animate-shimmer: shimmer 1.6s ease-in-out infinite;
+  --animate-fade-up: fade-up 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-pulse-ring: pulse-ring 2s ease-out infinite;
+  --animate-grow: grow 1.2s cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-draw: draw 1.4s cubic-bezier(0.65, 0, 0.35, 1) both;
+
+  @keyframes heartbeat {
+    0%,
+    100% {
+      transform: scale(1);
+    }
+    14% {
+      transform: scale(1.18);
+    }
+    28% {
+      transform: scale(1);
+    }
+    42% {
+      transform: scale(1.12);
+    }
+    70% {
+      transform: scale(1);
+    }
+  }
+  @keyframes ecg-draw {
+    from {
+      stroke-dashoffset: 1;
+    }
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+  @keyframes grow {
+    from {
+      transform: scaleX(0);
+    }
+  }
+  @keyframes draw {
+    from {
+      stroke-dashoffset: 1;
+    }
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+  @keyframes shimmer {
+    0% {
+      background-position: -200% 0;
+    }
+    100% {
+      background-position: 200% 0;
+    }
+  }
+  @keyframes fade-up {
+    from {
+      opacity: 0;
+      transform: translateY(14px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes pulse-ring {
+    0% {
+      box-shadow: 0 0 0 0 color-mix(in oklab, var(--color-flare-500) 45%, transparent);
+    }
+    100% {
+      box-shadow: 0 0 0 14px transparent;
+    }
+  }
+}
+
+/* Tokens semánticos (cambian con el tema). Contraste AA verificado. */
+:root {
+  color-scheme: light;
+  --app-bg: #fdf8f5;
+  --app-surface: #ffffff;
+  --app-surface-2: #faf1ec;
+  --app-fg: #2a1530;
+  --app-muted: #6b5470;
+  --app-border: #eedcd3;
+  --app-primary: #b13c6c;
+  --app-on-primary: #ffffff;
+  --app-link: #8f3371;
+  --app-ring: #d14a61;
+  /* Series de datos (validadas para daltonismo sobre la superficie). */
+  --app-series-1: #d14a61;
+  --app-series-2: #1d84ae;
+  --app-grid: #eedcd3;
+  /* Niveles de riesgo: fondo + texto (≥ 6:1). */
+  --risk-bajo-bg: #d9eef6;
+  --risk-bajo-fg: #0d4a63;
+  --risk-bajo: #1d84ae;
+  --risk-moderado-bg: #fbe3d3;
+  --risk-moderado-fg: #8a3a14;
+  --risk-moderado: #e98d6b;
+  --risk-alto-bg: #f6d6e2;
+  --risk-alto-fg: #7a1f4a;
+  --risk-alto: #b13c6c;
+}
+
+.dark {
+  color-scheme: dark;
+  --app-bg: #150b18;
+  --app-surface: #1f1422;
+  --app-surface-2: #2a1b2e;
+  --app-fg: #f7ecf0;
+  --app-muted: #c4adc4;
+  --app-border: #3a2840;
+  --app-primary: #e98d6b;
+  --app-on-primary: #150b18;
+  --app-link: #edb081;
+  --app-ring: #edb081;
+  --app-series-1: #e3685c;
+  --app-series-2: #2799c4;
+  --app-grid: #3a2840;
+  --risk-bajo-bg: color-mix(in oklab, #2799c4 22%, #1f1422);
+  --risk-bajo-fg: #8fd0ea;
+  --risk-bajo: #2799c4;
+  --risk-moderado-bg: color-mix(in oklab, #e98d6b 22%, #1f1422);
+  --risk-moderado-fg: #f3b58f;
+  --risk-moderado: #e98d6b;
+  --risk-alto-bg: color-mix(in oklab, #d14a61 24%, #1f1422);
+  --risk-alto-fg: #f29bbd;
+  --risk-alto: #e3685c;
+}
+
+@theme inline {
+  --color-bg: var(--app-bg);
+  --color-surface: var(--app-surface);
+  --color-surface-2: var(--app-surface-2);
+  --color-fg: var(--app-fg);
+  --color-muted: var(--app-muted);
+  --color-border: var(--app-border);
+  --color-primary: var(--app-primary);
+  --color-on-primary: var(--app-on-primary);
+  --color-link: var(--app-link);
+  --color-ring: var(--app-ring);
+  --color-series-1: var(--app-series-1);
+  --color-series-2: var(--app-series-2);
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    @apply bg-bg text-fg font-sans antialiased;
+    min-height: 100dvh;
+    transition:
+      background-color 0.3s ease,
+      color 0.3s ease;
+  }
+  :focus-visible {
+    outline: 3px solid var(--app-ring);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+  ::selection {
+    background: color-mix(in oklab, var(--color-flare-300) 45%, transparent);
+  }
+}
+
+@layer components {
+  .card {
+    @apply rounded-2xl border border-border bg-surface p-5 shadow-sm shadow-flare-900/5 sm:p-6;
+  }
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition duration-200 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  .btn-primary {
+    @apply bg-primary text-on-primary hover:brightness-110 active:scale-[0.98];
+  }
+  .btn-ghost {
+    @apply border border-border bg-surface text-fg hover:bg-surface-2;
+  }
+  .skeleton {
+    @apply animate-shimmer rounded-lg;
+    background-image: linear-gradient(
+      90deg,
+      var(--app-surface-2) 0%,
+      color-mix(in oklab, var(--app-border) 70%, var(--app-surface)) 50%,
+      var(--app-surface-2) 100%
+    );
+    background-size: 200% 100%;
+  }
+  .section-title {
+    @apply text-lg font-bold tracking-tight text-fg sm:text-xl;
+  }
+}
+
+/* Deslizador temático: pista rellena hasta el valor (--fill). */
+.range {
+  appearance: none;
+  height: 1.75rem;
+  background: transparent;
+  cursor: pointer;
+}
+.range::-webkit-slider-runnable-track {
+  height: 0.5rem;
+  border-radius: 999px;
+  background:
+    linear-gradient(90deg, var(--color-flare-300), var(--color-flare-600)) 0 / var(--fill, 50%) 100%
+      no-repeat,
+    var(--app-surface-2);
+}
+.range::-moz-range-track {
+  height: 0.5rem;
+  border-radius: 999px;
+  background: var(--app-surface-2);
+}
+.range::-moz-range-progress {
+  height: 0.5rem;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--color-flare-300), var(--color-flare-600));
+}
+.range::-webkit-slider-thumb {
+  appearance: none;
+  margin-top: -0.5rem;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 999px;
+  background: var(--app-surface);
+  border: 3px solid var(--app-primary);
+  box-shadow: 0 2px 6px rgb(0 0 0 / 0.2);
+  transition: transform 0.15s ease;
+}
+.range::-moz-range-thumb {
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 999px;
+  background: var(--app-surface);
+  border: 3px solid var(--app-primary);
+}
+.range:active::-webkit-slider-thumb {
+  transform: scale(1.15);
+}
+.range:focus-visible {
+  outline: 3px solid var(--app-ring);
+  outline-offset: 2px;
+}
+
+/* Entrada escalonada: el elemento define --i (índice) y recibe la clase. */
+.stagger-in {
+  animation: var(--animate-fade-up);
+  animation-delay: calc(var(--i, 0) * 70ms);
+}
+
+/* animate.enter / animate.leave de Angular (sustituto de @angular/animations). */
+.step-enter {
+  animation: step-in 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.step-leave {
+  animation: step-out 0.2s ease-in both;
+}
+.result-enter {
+  animation: result-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes step-in {
+  from {
+    opacity: 0;
+    transform: translateX(var(--step-dir, 24px));
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes step-out {
+  to {
+    opacity: 0;
+    transform: translateX(calc(var(--step-dir, 24px) * -1));
+  }
+}
+@keyframes result-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Transiciones de ruta (View Transitions API, activada con withViewTransitions). */
+::view-transition-old(root) {
+  animation: vt-out 0.18s ease-in both;
+}
+::view-transition-new(root) {
+  animation: vt-in 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes vt-out {
+  to {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}
+@keyframes vt-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+
+/* Movimiento reducido: sin animaciones decorativas ni transiciones largas. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none !important;
+  }
+}
