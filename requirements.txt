@@ -1,7 +1,7 @@
-torch
-torchvision
-pandas
-numpy
-matplotlib
-seaborn
-scikit-learn
+# Dependencias de ejecución (equivalentes a `pip install -e .`).
+# Para torch solo-CPU: pip install torch --index-url https://download.pytorch.org/whl/cpu
+torch>=2.2
+numpy>=1.26
+pandas>=2.1
+scikit-learn>=1.4
+joblib>=1.3

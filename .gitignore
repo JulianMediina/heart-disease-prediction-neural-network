@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Entornos virtuales
+.venv/
+venv/
+.env
+
+# Figuras generadas (se regeneran con `python -m heart_nn.plots`).
+# Los artefactos del modelo (model.pt, preprocessor.joblib, *.json) SÍ se versionan:
+# la API los necesita.
+artifacts/figures/
+
+# Node / Angular
+node_modules/
+web/dist/
+web/.angular/
+
+# IDE / SO
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

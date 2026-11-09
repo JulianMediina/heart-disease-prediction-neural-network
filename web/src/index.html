@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <title>CardioRed · Predicción de riesgo cardíaco</title>
+    <base href="/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Interfaz de la red neuronal de predicción de enfermedad cardíaca: métricas, predicción y documentación del modelo."
+    />
+    <meta name="theme-color" content="#b13c6c" />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <script>
+      // Aplica el tema antes del primer pintado para evitar parpadeo.
+      (function () {
+        try {
+          var t = localStorage.getItem('heart-nn-theme');
+          var dark = t ? t === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+          if (dark) document.documentElement.classList.add('dark');
+        } catch (e) {}
+      })();
+    </script>
+  </head>
+  <body>
+    <app-root></app-root>
+    <noscript>Esta aplicación necesita JavaScript.</noscript>
+  </body>
+</html>
