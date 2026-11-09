@@ -85,7 +85,7 @@ const PAD = { top: 16, right: 16, bottom: 44, left: 52 };
             [attr.x2]="width() - pad.right"
             [attr.y1]="t.y"
             [attr.y2]="t.y"
-            stroke="var(--app-grid)"
+            stroke="var(--app-chart-grid)"
             stroke-width="1"
           />
           <text
@@ -93,7 +93,7 @@ const PAD = { top: 16, right: 16, bottom: 44, left: 52 };
             [attr.y]="t.y"
             dy="0.32em"
             text-anchor="end"
-            class="fill-muted text-[11px] tabular-nums"
+            class="fill-muted font-mono text-[10px] tabular-nums"
           >
             {{ t.label }}
           </text>
@@ -103,7 +103,7 @@ const PAD = { top: 16, right: 16, bottom: 44, left: 52 };
             [attr.x]="t.x"
             [attr.y]="height() - pad.bottom + 18"
             text-anchor="middle"
-            class="fill-muted text-[11px] tabular-nums"
+            class="fill-muted font-mono text-[10px] tabular-nums"
           >
             {{ t.label }}
           </text>
@@ -151,9 +151,9 @@ const PAD = { top: 16, right: 16, bottom: 44, left: 52 };
               [attr.x2]="sx(m.x)"
               [attr.y1]="pad.top"
               [attr.y2]="height() - pad.bottom"
-              stroke="var(--color-flare-700)"
+              stroke="var(--app-fg)"
+              stroke-opacity="0.7"
               stroke-dasharray="3 3"
-              class="dark:stroke-flare-200"
             />
             <text
               [attr.x]="sx(m.x) + 6"
@@ -181,7 +181,8 @@ const PAD = { top: 16, right: 16, bottom: 44, left: 52 };
               [attr.stroke]="s.color"
               stroke-width="2"
               stroke-dasharray="6 5"
-              class="animate-fade-up"
+              class="animate-fade-up glow"
+              [style.--glow]="s.color"
             />
           } @else {
             <path
@@ -193,7 +194,8 @@ const PAD = { top: 16, right: 16, bottom: 44, left: 52 };
               stroke-linecap="round"
               pathLength="1"
               stroke-dasharray="1"
-              class="animate-draw"
+              class="animate-draw glow"
+              [style.--glow]="s.color"
             />
           }
         }
@@ -222,7 +224,7 @@ const PAD = { top: 16, right: 16, bottom: 44, left: 52 };
 
       @if (hoverInfo(); as h) {
         <div
-          class="pointer-events-none absolute z-10 min-w-36 rounded-xl border border-border bg-surface px-3 py-2 text-xs shadow-lg"
+          class="pointer-events-none absolute z-10 min-w-36 rounded-md border border-border-strong bg-surface px-3 py-2 font-mono text-xs shadow-lg"
           [style.left.px]="h.tipLeft"
           [style.top.px]="series().length > 1 ? 40 : 8"
           aria-live="polite"

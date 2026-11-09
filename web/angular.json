@@ -25,6 +25,11 @@
               }
             ],
             "styles": [
+              "@fontsource/chakra-petch/latin-400.css",
+              "@fontsource/chakra-petch/latin-500.css",
+              "@fontsource/chakra-petch/latin-600.css",
+              "@fontsource/chakra-petch/latin-700.css",
+              "@fontsource-variable/jetbrains-mono/wght.css",
               "src/styles.css"
             ]
           },

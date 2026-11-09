@@ -2,10 +2,11 @@ import { ChangeDetectionStrategy, Component, computed, input } from '@angular/co
 
 import { RiskLevel } from '../../core/models/api.models';
 
-const LABELS: Record<RiskLevel, string> = {
-  bajo: 'Riesgo bajo',
-  moderado: 'Riesgo moderado',
-  alto: 'Riesgo alto',
+const LEVELS: Record<RiskLevel, { label: string; bg: string; fg: string }> = {
+  // Fondos de la escala flare; texto elegido para contraste ≥ 5,8:1.
+  bajo: { label: 'Riesgo bajo', bg: '#edb081', fg: '#150b18' },
+  moderado: { label: 'Riesgo moderado', bg: '#e3685c', fg: '#150b18' },
+  alto: { label: 'Riesgo alto', bg: '#8f3371', fg: '#ffffff' },
 };
 
 /** Insignia del nivel de riesgo: color + icono + texto (nunca sólo color). */
@@ -14,9 +15,9 @@ const LABELS: Record<RiskLevel, string> = {
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <span
-      class="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-bold"
-      [style.background]="'var(--risk-' + level() + '-bg)'"
-      [style.color]="'var(--risk-' + level() + '-fg)'"
+      class="inline-flex items-center gap-1.5 rounded-sm px-2.5 py-1 font-mono text-xs font-bold tracking-widest uppercase"
+      [style.background]="cfg().bg"
+      [style.color]="cfg().fg"
       [attr.data-level]="level()"
     >
       <svg
@@ -43,11 +44,11 @@ const LABELS: Record<RiskLevel, string> = {
           }
         }
       </svg>
-      {{ label() }}
+      {{ cfg().label }}
     </span>
   `,
 })
 export class RiskBadge {
   readonly level = input.required<RiskLevel>();
-  protected readonly label = computed(() => LABELS[this.level()]);
+  protected readonly cfg = computed(() => LEVELS[this.level()]);
 }

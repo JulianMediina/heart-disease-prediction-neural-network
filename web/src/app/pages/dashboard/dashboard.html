@@ -1,48 +1,51 @@
-<section class="mx-auto max-w-6xl px-4 pt-8 sm:px-6 sm:pt-12">
-  <div class="stagger-in flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-    <div class="max-w-2xl">
-      <p class="text-sm font-semibold uppercase tracking-widest text-link">Panel del modelo</p>
-      <h1 class="mt-1 text-3xl font-extrabold tracking-tight text-fg sm:text-4xl">
+<section class="mx-auto max-w-6xl px-4 pt-6 sm:px-6 sm:pt-10">
+  <!-- Cabecera tipo tira de monitor -->
+  <div class="panel stagger-in grid gap-5 overflow-hidden md:grid-cols-[1fr_auto] md:items-center">
+    <div>
+      <p class="channel-label">Monitor del modelo · canal de evaluación</p>
+      <h1 class="mt-1 text-3xl leading-tight font-bold tracking-wide text-fg sm:text-4xl">
         ¿Qué tan bien predice la red neuronal?
       </h1>
-      <p class="mt-3 text-muted">
+      <p class="mt-2 max-w-2xl text-muted">
         Métricas sobre el conjunto de test, validación cruzada y comparación con una regresión
         logística como modelo de referencia.
       </p>
+      <app-ecg-line class="mt-4 h-12" [beats]="5" [speed]="3" />
     </div>
-    <a routerLink="/prediccion" class="btn btn-primary animate-pulse-ring self-start md:self-auto">
-      Probar una predicción
-      <svg
-        viewBox="0 0 24 24"
-        class="size-4"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2.4"
-        aria-hidden="true"
-      >
-        <path d="M5 12h14m-6-6 6 6-6 6" stroke-linecap="round" stroke-linejoin="round" />
-      </svg>
-    </a>
+    <div class="flex flex-col items-start gap-3 md:items-end">
+      @if (ready(); as d) {
+        <div class="text-left md:text-right">
+          <p class="channel-label">ROC-AUC test</p>
+          <p class="vital text-5xl font-bold text-fg">{{ d.metrics.test.roc_auc | number: '1.3-3' }}</p>
+        </div>
+      }
+      <a routerLink="/prediccion" class="btn btn-primary">
+        Probar una predicción
+        <svg viewBox="0 0 24 24" class="size-4" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true">
+          <path d="M5 12h14m-6-6 6 6-6 6" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+      </a>
+    </div>
   </div>
 
   @switch (data.state().status) {
     @case ('loading') {
       <div
-        class="mt-8 grid grid-cols-1 gap-4 min-[420px]:grid-cols-2 lg:grid-cols-5"
+        class="mt-6 grid grid-cols-1 gap-3 min-[420px]:grid-cols-2 lg:grid-cols-5"
         aria-busy="true"
         aria-label="Cargando métricas"
       >
         @for (i of [1, 2, 3, 4, 5]; track i) {
-          <app-skeleton shape="h-36 w-full rounded-2xl" />
+          <app-skeleton shape="h-44 w-full" />
         }
       </div>
       <div class="mt-6 grid gap-6 lg:grid-cols-2">
-        <app-skeleton shape="h-80 w-full rounded-2xl" />
-        <app-skeleton shape="h-80 w-full rounded-2xl" />
+        <app-skeleton shape="h-80 w-full" />
+        <app-skeleton shape="h-80 w-full" />
       </div>
     }
     @case ('error') {
-      <div class="mt-8">
+      <div class="mt-6">
         <app-error-banner
           title="No pudimos cargar las métricas del modelo"
           [message]="errorMessage()"
@@ -53,38 +56,40 @@
   }
 
   @if (ready(); as d) {
-    <!-- KPIs -->
-    <div class="mt-8 grid grid-cols-1 gap-4 min-[420px]:grid-cols-2 lg:grid-cols-5">
+    <!-- Canales de métricas -->
+    <div class="mt-6 grid grid-cols-1 gap-3 min-[420px]:grid-cols-2 lg:grid-cols-5">
       @for (k of kpis(); track k.key; let i = $index) {
         <app-kpi-card
           class="stagger-in"
-          [style.--i]="i"
+          [style.--i]="i + 1"
+          [code]="k.code"
           [label]="k.label"
           [value]="k.value"
           [cv]="k.cv"
           [hint]="thresholdLabel()"
+          [index]="i"
         />
       }
     </div>
-    <p class="mt-3 text-xs text-muted">
-      Test: {{ d.metrics.n_samples.test }} pacientes · entrenamiento
-      {{ d.metrics.n_samples.train }} · validación {{ d.metrics.n_samples.val }}.
+    <p class="mt-3 font-mono text-[11px] tracking-wide text-muted">
+      N test {{ d.metrics.n_samples.test }} · train {{ d.metrics.n_samples.train }} · val
+      {{ d.metrics.n_samples.val }}
       @if (d.metrics.threshold !== undefined) {
-        Umbral de decisión:
-        <strong class="font-semibold text-fg">{{ d.metrics.threshold | number: '1.3-3' }}</strong>
-        (elegido por índice de Youden en validación cruzada).
+        · umbral
+        <strong class="text-fg">{{ d.metrics.threshold | number: '1.3-3' }}</strong>
+        (índice de Youden en validación cruzada)
       }
       @if (d.metrics.cv_folds) {
-        CV con {{ d.metrics.cv_folds }} particiones.
+        · CV {{ d.metrics.cv_folds }} particiones · barra = media ± desv.
       }
     </p>
 
-    <div class="mt-6 grid gap-6 lg:grid-cols-5">
-      <!-- Comparación con baseline -->
-      <section class="card stagger-in lg:col-span-2" style="--i: 5" aria-labelledby="cmp-title">
-        <h2 id="cmp-title" class="section-title">Red neuronal vs. regresión logística</h2>
-        <p class="mb-4 mt-1 text-sm text-muted">
-          Mismo conjunto de test y mismo umbral de decisión (0,5) para que la comparación sea justa.
+    <div class="mt-6 grid gap-5 lg:grid-cols-5">
+      <section class="panel stagger-in lg:col-span-2" style="--i: 6" aria-labelledby="cmp-title">
+        <p class="channel-label">Comparación</p>
+        <h2 id="cmp-title" class="panel-title">Red neuronal vs. regresión logística</h2>
+        <p class="mt-1 mb-4 text-sm text-muted">
+          Mismo conjunto de test y mismo umbral (0,5) para que la comparación sea justa.
           @if (!fairComparison()) {
             (La API no expone las métricas de la red con umbral 0,5; se muestran las del umbral
             optimizado.)
@@ -95,13 +100,13 @@
           [labelA]="fairComparison() ? 'Red neuronal (umbral 0,5)' : 'Red neuronal'"
           labelB="Regresión logística (umbral 0,5)"
         />
-        <p class="mt-5 rounded-xl bg-surface-2 p-3 text-sm text-fg">{{ verdict() }}</p>
+        <p class="mt-5 border-l-2 border-hg-sage bg-surface-2 p-3 text-sm text-fg">{{ verdict() }}</p>
       </section>
 
-      <!-- Curvas de pérdida -->
-      <section class="card stagger-in lg:col-span-3" style="--i: 6" aria-labelledby="loss-title">
-        <h2 id="loss-title" class="section-title">Curvas de aprendizaje</h2>
-        <p class="mb-4 mt-1 text-sm text-muted">
+      <section class="panel stagger-in lg:col-span-3" style="--i: 7" aria-labelledby="loss-title">
+        <p class="channel-label">Entrenamiento</p>
+        <h2 id="loss-title" class="panel-title">Curvas de aprendizaje</h2>
+        <p class="mt-1 mb-4 text-sm text-muted">
           Pérdida (entropía cruzada binaria) por época. Se conservan los pesos de la época
           {{ bestEpoch() }}, la de menor pérdida de validación (parada temprana).
         </p>
@@ -122,24 +127,26 @@
         />
       </section>
 
-      <!-- Matriz de confusión -->
-      <section class="card stagger-in lg:col-span-2" style="--i: 7" aria-labelledby="cm-title">
-        <h2 id="cm-title" class="section-title">Matriz de confusión</h2>
-        <p class="mb-4 mt-1 text-sm text-muted">
+      <section class="panel stagger-in lg:col-span-2" style="--i: 8" aria-labelledby="cm-title">
+        <p class="channel-label">Test</p>
+        <h2 id="cm-title" class="panel-title">Matriz de confusión</h2>
+        <p class="mt-1 mb-4 text-sm text-muted">
           Clase 1 = enfermedad cardíaca; clase 0 = sin enfermedad.
         </p>
         <app-confusion-matrix [matrix]="d.metrics.confusion_matrix" />
       </section>
 
-      <!-- ROC -->
-      <section class="card stagger-in lg:col-span-3" style="--i: 8" aria-labelledby="roc-title">
-        <div class="flex flex-wrap items-baseline justify-between gap-2">
-          <h2 id="roc-title" class="section-title">Curva ROC</h2>
-          <span class="rounded-full bg-surface-2 px-3 py-1 text-sm font-semibold text-fg">
-            AUC = {{ d.metrics.test.roc_auc | number: '1.3-3' }}
+      <section class="panel stagger-in lg:col-span-3" style="--i: 9" aria-labelledby="roc-title">
+        <div class="flex flex-wrap items-start justify-between gap-2">
+          <div>
+            <p class="channel-label">Discriminación</p>
+            <h2 id="roc-title" class="panel-title">Curva ROC</h2>
+          </div>
+          <span class="vital rounded-sm border border-border-strong px-3 py-1 text-sm text-fg">
+            AUC {{ d.metrics.test.roc_auc | number: '1.3-3' }}
           </span>
         </div>
-        <p class="mb-4 mt-1 text-sm text-muted">
+        <p class="mt-1 mb-4 text-sm text-muted">
           Tasa de verdaderos positivos frente a falsos positivos al variar el umbral.
         </p>
         <app-line-chart
@@ -160,11 +167,11 @@
         />
       </section>
 
-      <!-- Distribución de clases -->
-      <section class="card stagger-in lg:col-span-5" style="--i: 9" aria-labelledby="dist-title">
+      <section class="panel stagger-in lg:col-span-5" style="--i: 10" aria-labelledby="dist-title">
         <div class="grid gap-6 md:grid-cols-2 md:items-center">
           <div>
-            <h2 id="dist-title" class="section-title">Distribución de clases</h2>
+            <p class="channel-label">Datos</p>
+            <h2 id="dist-title" class="panel-title">Distribución de clases</h2>
             <p class="mt-2 text-sm text-muted">
               Recuento tras eliminar duplicados ({{
                 d.metrics.class_distribution['0'] + d.metrics.class_distribution['1']

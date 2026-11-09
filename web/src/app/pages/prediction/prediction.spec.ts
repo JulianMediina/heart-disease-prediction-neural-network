@@ -85,7 +85,7 @@ describe('Prediction', () => {
     expect(live?.querySelector('app-risk-badge')?.textContent).toMatch(
       /Riesgo (bajo|moderado|alto)/,
     );
-    expect(live?.textContent).toContain('Banda de riesgo');
+    expect(live?.textContent).toContain('Banda');
     // El umbral viene de metrics.threshold (0,345 en los fixtures), no está fijado en el código.
     expect(live?.textContent).toContain('0,345');
   });

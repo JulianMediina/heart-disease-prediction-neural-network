@@ -16,7 +16,7 @@
       (function () {
         try {
           var t = localStorage.getItem('heart-nn-theme');
-          var dark = t ? t === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+          var dark = t ? t === 'dark' : true;
           if (dark) document.documentElement.classList.add('dark');
         } catch (e) {}
       })();

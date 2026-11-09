@@ -1,42 +1,58 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 
-/** Línea de electrocardiograma que se dibuja en bucle bajo la cabecera (decorativa). */
+let uid = 0;
+
+/**
+ * Traza de ECG decorativa con barrido continuo y brillo de fósforo (motivo visual
+ * de toda la app). `beats` latidos por traza; `color` cualquier color CSS.
+ */
 @Component({
   selector: 'app-ecg-line',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block pointer-events-none', 'aria-hidden': 'true' },
   template: `
-    <svg viewBox="0 0 600 40" preserveAspectRatio="none" class="h-8 w-full">
+    <svg [attr.viewBox]="'0 0 ' + width() + ' 40'" preserveAspectRatio="none" class="block h-full w-full overflow-visible">
       <defs>
-        <linearGradient id="ecg-grad" x1="0" x2="1">
-          <stop offset="0%" stop-color="var(--color-flare-200)" stop-opacity="0" />
-          <stop offset="20%" stop-color="var(--color-flare-300)" />
-          <stop offset="55%" stop-color="var(--color-flare-500)" />
-          <stop offset="100%" stop-color="var(--color-flare-700)" stop-opacity="0.2" />
+        <linearGradient [attr.id]="gid" x1="0" x2="1">
+          <stop offset="0%" [attr.stop-color]="color()" stop-opacity="0" />
+          <stop offset="85%" [attr.stop-color]="color()" stop-opacity="1" />
+          <stop offset="100%" stop-color="#ffffff" stop-opacity="1" />
         </linearGradient>
       </defs>
-      <path [attr.d]="path" fill="none" stroke="var(--app-border)" stroke-width="1.5" />
+      <path [attr.d]="path()" fill="none" [attr.stroke]="color()" stroke-opacity="0.18" stroke-width="1.2" vector-effect="non-scaling-stroke" />
       <path
-        [attr.d]="path"
+        [attr.d]="path()"
         fill="none"
-        stroke="url(#ecg-grad)"
-        stroke-width="2.2"
+        [attr.stroke]="color()"
+        stroke-width="2"
         stroke-linejoin="round"
         stroke-linecap="round"
         pathLength="1"
-        stroke-dasharray="0.35 0.65"
-        class="animate-ecg"
+        stroke-dasharray="0.3 0.7"
+        vector-effect="non-scaling-stroke"
+        class="animate-ecg glow"
+        [style.--glow]="color()"
+        [style.animation-duration.s]="speed()"
       />
     </svg>
   `,
 })
 export class EcgLine {
-  /** Tres latidos (onda P, complejo QRS, onda T) sobre una línea base. */
-  protected readonly path = [0, 200, 400]
-    .map(
-      (o) =>
-        `M${o},22 L${o + 60},22 Q${o + 70},14 ${o + 80},22 L${o + 92},22 L${o + 98},28 L${o + 106},2 L${o + 114},36 L${o + 120},22 ` +
-        `L${o + 135},22 Q${o + 152},10 ${o + 168},22 L${o + 200},22`,
-    )
-    .join(' ');
+  readonly beats = input(3);
+  readonly color = input('var(--app-trace)');
+  /** Segundos por barrido completo. */
+  readonly speed = input(2.6);
+  protected readonly gid = `ecg-grad-${uid++}`;
+  protected readonly width = computed(() => this.beats() * 200);
+
+  /** Latido: onda P, complejo QRS y onda T sobre la línea base. */
+  protected readonly path = computed(() =>
+    Array.from({ length: this.beats() }, (_, i) => i * 200)
+      .map(
+        (o) =>
+          `M${o},24 L${o + 60},24 Q${o + 70},16 ${o + 80},24 L${o + 92},24 L${o + 98},30 L${o + 106},2 L${o + 114},38 L${o + 120},24 ` +
+          `L${o + 135},24 Q${o + 152},12 ${o + 168},24 L${o + 200},24`,
+      )
+      .join(' '),
+  );
 }

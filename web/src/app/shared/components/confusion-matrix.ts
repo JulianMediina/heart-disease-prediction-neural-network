@@ -84,13 +84,13 @@ interface Cell {
             @for (c of row.cells; track c.key) {
               <div
                 role="cell"
-                class="stagger-in flex aspect-[4/3] flex-col items-center justify-center rounded-xl p-2 text-center transition-transform duration-200 hover:scale-[1.02]"
+                class="stagger-in flex aspect-[4/3] flex-col items-center justify-center rounded-md p-2 text-center transition-transform duration-200 hover:scale-[1.02]"
                 [style.--i]="c.i"
                 [style.background]="c.bg"
                 [style.color]="c.ink"
                 [attr.title]="c.label + ': ' + c.value"
               >
-                <span class="text-2xl font-extrabold tabular-nums sm:text-3xl">{{ c.value }}</span>
+                <span class="font-mono text-2xl font-bold tabular-nums sm:text-3xl">{{ c.value }}</span>
                 <span
                   class="text-[11px] font-semibold uppercase tracking-wide opacity-90 sm:text-xs"
                   >{{ c.label }}</span

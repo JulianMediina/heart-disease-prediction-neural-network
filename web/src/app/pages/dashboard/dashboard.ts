@@ -4,6 +4,7 @@ import { RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
 
 import { MetricKey, MetricsResponse, TrainingHistory } from '../../core/models/api.models';
+import { EcgLine } from '../../layout/ecg-line';
 import { ApiService } from '../../core/services/api.service';
 import { loadable } from '../../core/services/loadable';
 import { ClassDistribution } from '../../shared/components/class-distribution';
@@ -20,6 +21,14 @@ export const METRIC_LABELS: Record<MetricKey, string> = {
   recall: 'Sensibilidad (recall)',
   f1: 'F1',
   roc_auc: 'ROC-AUC',
+};
+
+export const METRIC_CODES: Record<MetricKey, string> = {
+  accuracy: 'ACC',
+  precision: 'PPV',
+  recall: 'SENS',
+  f1: 'F1',
+  roc_auc: 'AUC',
 };
 
 const METRIC_ORDER: MetricKey[] = ['accuracy', 'precision', 'recall', 'f1', 'roc_auc'];
@@ -41,6 +50,7 @@ interface DashboardData {
     ComparisonBars,
     ErrorBanner,
     Skeleton,
+    EcgLine,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './dashboard.html',
@@ -67,6 +77,7 @@ export class Dashboard {
     const cv = d.metrics.cv as Partial<Record<MetricKey, { mean: number; std: number }>>;
     return METRIC_ORDER.map((key) => ({
       key,
+      code: METRIC_CODES[key],
       label: METRIC_LABELS[key],
       value: d.metrics.test[key],
       cv: cv[key] ?? null,

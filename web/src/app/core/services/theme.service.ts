@@ -4,7 +4,7 @@ import { effect, inject, Injectable, signal } from '@angular/core';
 export type Theme = 'light' | 'dark';
 const STORAGE_KEY = 'heart-nn-theme';
 
-/** Tema claro/oscuro por clase en <html>. Por defecto sigue prefers-color-scheme. */
+/** Tema claro/oscuro por clase en <html>. Oscuro por defecto; se recuerda la elección. */
 @Injectable({ providedIn: 'root' })
 export class ThemeService {
   private readonly doc = inject(DOCUMENT);
@@ -34,8 +34,7 @@ export class ThemeService {
     } catch {
       /* ignorar */
     }
-    const prefersDark =
-      this.doc.defaultView?.matchMedia?.('(prefers-color-scheme: dark)').matches ?? false;
-    return prefersDark ? 'dark' : 'light';
+    // Estética de monitor: oscuro por defecto; el modo claro queda a un clic.
+    return 'dark';
   }
 }

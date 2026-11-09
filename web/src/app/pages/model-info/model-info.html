@@ -10,8 +10,8 @@
   </div>
 
   <!-- Arquitectura -->
-  <section class="card stagger-in mt-8" style="--i: 1" aria-labelledby="arch-title">
-    <h2 id="arch-title" class="section-title">Arquitectura: perceptrón multicapa (MLP)</h2>
+  <section class="panel stagger-in mt-8" style="--i: 1" aria-labelledby="arch-title">
+    <h2 id="arch-title" class="panel-title">Arquitectura: perceptrón multicapa (MLP)</h2>
     <p class="mt-1 text-sm text-muted">
       Red totalmente conectada implementada en PyTorch. Los nodos dibujados son una muestra: las
       capas reales tienen 27, 64, 32 y 1 neuronas.
@@ -116,25 +116,25 @@
       class="mt-6 grid gap-4 min-[420px]:grid-cols-2 lg:grid-cols-4"
       aria-label="Resumen del dataset"
     >
-      <div class="card stagger-in" style="--i: 3">
+      <div class="panel stagger-in" style="--i: 3">
         <p class="text-xs text-muted">Pacientes (dataset original)</p>
         <p class="mt-1 text-3xl font-extrabold text-fg tabular-nums">{{ d.summary.n_samples }}</p>
       </div>
-      <div class="card stagger-in" style="--i: 4">
+      <div class="panel stagger-in" style="--i: 4">
         <p class="text-xs text-muted">Filas duplicadas</p>
         <p class="mt-1 text-3xl font-extrabold text-fg tabular-nums">
           {{ d.summary.n_duplicates }}
         </p>
         <p class="text-xs text-muted">se eliminan antes de entrenar</p>
       </div>
-      <div class="card stagger-in" style="--i: 5">
+      <div class="panel stagger-in" style="--i: 5">
         <p class="text-xs text-muted">Clases · dataset original</p>
         <p class="mt-1 text-lg font-bold text-fg tabular-nums">
           0: {{ count(d.summary.class_distribution, '0') }} · 1:
           {{ count(d.summary.class_distribution, '1') }}
         </p>
       </div>
-      <div class="card stagger-in" style="--i: 6">
+      <div class="panel stagger-in" style="--i: 6">
         <p class="text-xs text-muted">Clases · tras eliminar duplicados</p>
         @if (d.metrics; as m) {
           <p class="mt-1 text-lg font-bold text-fg tabular-nums">
@@ -150,8 +150,8 @@
     </section>
 
     <!-- Diccionario -->
-    <section class="card stagger-in mt-6" style="--i: 7" aria-labelledby="dict-title">
-      <h2 id="dict-title" class="section-title">Diccionario de variables</h2>
+    <section class="panel stagger-in mt-6" style="--i: 7" aria-labelledby="dict-title">
+      <h2 id="dict-title" class="panel-title">Diccionario de variables</h2>
       <p class="mt-1 text-sm text-muted">
         Estadísticas calculadas sobre el CSV original ({{ d.summary.n_samples }} filas).
       </p>
@@ -213,8 +213,8 @@
   }
 
   <!-- Metodología -->
-  <section class="card stagger-in mt-6" style="--i: 8" aria-labelledby="method-title">
-    <h2 id="method-title" class="section-title">Metodología</h2>
+  <section class="panel stagger-in mt-6" style="--i: 8" aria-labelledby="method-title">
+    <h2 id="method-title" class="panel-title">Metodología</h2>
     <ol class="mt-4 space-y-4">
       @for (
         s of [

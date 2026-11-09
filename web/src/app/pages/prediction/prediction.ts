@@ -3,10 +3,12 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  DestroyRef,
   effect,
   inject,
   signal,
 } from '@angular/core';
+import { Subscription } from 'rxjs';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import { DEFAULT_TARGET_NOTE } from '../../core/constants';
@@ -19,6 +21,8 @@ import {
 import { ApiService, describeApiError } from '../../core/services/api.service';
 import { ApiStatusService } from '../../core/services/api-status.service';
 import { loadable } from '../../core/services/loadable';
+import { EcgLine } from '../../layout/ecg-line';
+import { CountUp } from '../../shared/components/count-up';
 import { ErrorBanner } from '../../shared/components/error-banner';
 import { RiskBadge } from '../../shared/components/risk-badge';
 import { RiskGauge } from '../../shared/components/risk-gauge';
@@ -63,7 +67,7 @@ type FeatureForm = FormGroup<Record<string, FormControl<number | null>>>;
 
 @Component({
   selector: 'app-prediction',
-  imports: [ReactiveFormsModule, DecimalPipe, RiskGauge, RiskBadge, ErrorBanner, Skeleton],
+  imports: [ReactiveFormsModule, DecimalPipe, RiskGauge, RiskBadge, ErrorBanner, Skeleton, EcgLine, CountUp],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './prediction.html',
 })
@@ -76,6 +80,15 @@ export class Prediction {
   protected readonly step = signal(0);
   protected readonly direction = signal<1 | -1>(1);
   protected readonly predict = signal<PredictState>({ status: 'idle' });
+  /**
+   * Espejo reactivo de los valores del formulario. El deslizador y la caja numérica se
+   * sincronizan a través de él: un mismo FormControl enlazado a dos <input> no propaga
+   * a los demás accesores el valor escrito en uno de ellos (Angular usa
+   * emitModelToViewChange: false), que era la causa del desfase slider ↔ número.
+   */
+  protected readonly values = signal<Record<string, number | null>>({});
+  private formSub?: Subscription;
+  private predictSub?: Subscription;
 
   protected readonly specs = computed(() => {
     const s = this.features.state();
@@ -116,9 +129,20 @@ export class Prediction {
     return p.status === 'error' ? p.message : '';
   });
 
+  /** Última lectura válida: se mantiene visible mientras se recalcula, para que aguja y cifras
+   *  se animen del valor anterior al nuevo en vez de reiniciarse. */
+  private readonly lastResult = signal<PredictionResponse | null>(null);
   protected readonly result = computed(() => {
     const p = this.predict();
-    return p.status === 'ok' ? p.result : null;
+    if (p.status === 'ok') return p.result;
+    if (p.status === 'loading') return this.lastResult();
+    return null;
+  });
+
+  /** Color de la escala de riesgo (flare) para la lectura del monitor. */
+  protected readonly riskColor = computed(() => {
+    const r = this.result();
+    return r ? `var(--risk-${r.risk_level})` : 'var(--app-trace)';
   });
 
   constructor() {
@@ -128,8 +152,35 @@ export class Prediction {
     });
     effect(() => {
       const specs = this.specs();
-      if (specs.length && !this.form()) this.form.set(buildForm(specs));
+      if (specs.length && !this.form()) this.setForm(buildForm(specs));
     });
+    inject(DestroyRef).onDestroy(() => {
+      this.formSub?.unsubscribe();
+      this.predictSub?.unsubscribe();
+    });
+  }
+
+  private setForm(form: FeatureForm): void {
+    this.formSub?.unsubscribe();
+    this.form.set(form);
+    this.values.set(form.getRawValue());
+    this.formSub = form.valueChanges.subscribe(() => this.values.set(form.getRawValue()));
+  }
+
+  /** Movimiento del deslizador → FormControl (que a su vez actualiza la caja numérica). */
+  protected onSlide(name: string, event: Event): void {
+    const c = this.control(name);
+    const v = Number((event.target as HTMLInputElement).value);
+    c.setValue(Number.isFinite(v) ? v : null);
+    c.markAsDirty();
+    c.markAsTouched();
+  }
+
+  /** Porcentaje de relleno del deslizador (acotado a la pista). */
+  protected fill(spec: FeatureSpec): string {
+    const v = this.values()[spec.name] ?? spec.min;
+    const pct = ((Math.min(spec.max, Math.max(spec.min, v)) - spec.min) / (spec.max - spec.min || 1)) * 100;
+    return pct + '%';
   }
 
   control(name: string): FormControl<number | null> {
@@ -184,16 +235,20 @@ export class Prediction {
     this.step.set(i);
   }
 
-  protected fillExample(): void {
+  protected readonly examples = EXAMPLES;
+
+  protected fillExample(kind: keyof typeof EXAMPLES): void {
     const form = this.form();
     if (!form) return;
-    form.patchValue(EXAMPLE_PATIENT);
+    form.patchValue(EXAMPLES[kind].patient);
     form.markAllAsTouched();
   }
 
   protected reset(): void {
     const specs = this.specs();
-    this.form.set(buildForm(specs));
+    this.predictSub?.unsubscribe();
+    this.setForm(buildForm(specs));
+    this.lastResult.set(null);
     this.predict.set({ status: 'idle' });
     this.direction.set(-1);
     this.step.set(0);
@@ -201,7 +256,7 @@ export class Prediction {
 
   submit(): void {
     const form = this.form();
-    if (!form) return;
+    if (!form || this.predict().status === 'loading') return;
     form.markAllAsTouched();
     if (form.invalid) {
       const firstBad = this.steps().findIndex((s) =>
@@ -210,33 +265,41 @@ export class Prediction {
       if (firstBad >= 0) this.goTo(firstBad);
       return;
     }
-    const payload = Object.fromEntries(
-      Object.entries(form.getRawValue()).map(([k, v]) => [k, Number(v)]),
-    ) as PatientInput;
+    const payload = toPayload(form.getRawValue());
     this.predict.set({ status: 'loading' });
-    this.api.predict(payload).subscribe({
-      next: (result) => this.predict.set({ status: 'ok', result }),
+    this.predictSub?.unsubscribe();
+    this.predictSub = this.api.predict(payload).subscribe({
+      next: (result) => {
+        this.lastResult.set(result);
+        this.predict.set({ status: 'ok', result });
+      },
       error: (err: unknown) =>
         this.predict.set({ status: 'error', message: describeApiError(err) }),
     });
   }
 }
 
-const EXAMPLE_PATIENT: PatientInput = {
-  age: 58,
-  sex: 1,
-  trtbps: 140,
-  chol: 260,
-  fbs: 0,
-  cp: 0,
-  exng: 1,
-  restecg: 1,
-  thalachh: 140,
-  oldpeak: 1.6,
-  slp: 1,
-  caa: 1,
-  thall: 3,
-};
+/**
+ * Pacientes reales del dataset (data/heart.csv), elegidos para que el ejemplo sea coherente
+ * con la etiqueta: probabilidades comprobadas contra la API real (modelo v2.0.0).
+ */
+export const EXAMPLES = {
+  enfermo: {
+    label: 'Ejemplo con enfermedad',
+    // Fila 263 del CSV (output=0 → enfermedad=1): P(enfermedad) ≈ 0,905 con la API real.
+    patient: { age: 53, sex: 1, trtbps: 123, chol: 282, fbs: 0, cp: 0, exng: 1, restecg: 1, thalachh: 95, oldpeak: 2, slp: 1, caa: 2, thall: 3 },
+  },
+  sano: {
+    label: 'Ejemplo sano',
+    // Fila 119 del CSV (output=1 → enfermedad=0): P(enfermedad) ≈ 0,079 con la API real.
+    patient: { age: 46, sex: 0, trtbps: 105, chol: 204, fbs: 0, cp: 1, exng: 0, restecg: 1, thalachh: 172, oldpeak: 0, slp: 2, caa: 0, thall: 2 },
+  },
+} satisfies Record<string, { label: string; patient: PatientInput }>;
+
+/** Convierte los valores del formulario en números (la API rechaza cadenas). */
+export function toPayload(raw: Record<string, number | null>): PatientInput {
+  return Object.fromEntries(Object.entries(raw).map(([k, v]) => [k, Number(v)])) as PatientInput;
+}
 
 function fmt(v: number): string {
   return v.toLocaleString('es-ES');
